@@ -1,0 +1,20 @@
+---
+title: "Homework 2"
+author: Philipp Ross
+date: "June 11 2015"
+output: html_document
+---
+
+#### How many protein sequences are there fort he Ebola virus sequencing paper?
+
+Running the following commands can tell us that:
+``` {r question1, engine='bash', eval = FALSE}
+$ esearch -db protein -query PRJNA257197 | efetch -format fasta > ebola_aa.fasta
+$ cat ebola_aa.fasta | grep ">" | wc -l
+```
+
+And from this we see that we have **2240** sequences.
+
+#### Unpack at least three SRR runs and see what's inside.
+
+
