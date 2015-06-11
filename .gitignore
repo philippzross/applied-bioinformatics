@@ -11,3 +11,11 @@
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
+
+# large data files
+*/data/
+ncbi/
+
+# stupid mac files
+.DS_Store
+.viminfo
