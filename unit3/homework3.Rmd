@@ -5,6 +5,101 @@ date: "June 21 2015"
 output: html_document
 ---
 
-Download three datasets from the SRA (one of them is SRR1553610) and run fastqc on all three data sets.
+### Running fastqc on three datasets
 
-Discuss two plors from each of your files and discuss which data seems to produce output that indicates a better quality run. Download somewhere between 10,000 and 100,000 reads for this example using the -X flag.
+When running fastqc I used the *--nogroup* flag in order to prevent binning of basepairs along the read lengths. In addition each dataset downloaded consists of paired end reads.
+
+#### Zaire ebolavirus transcriptome sequencing from 2014 outbreak in Sierra Leone 
+
+To download this data I used the following command(s):
+
+```{r ebola1, engine='bash', eval=F}
+$ fastq-dump --split-files SRR1553610
+Read 219837 spots for SRR1553610
+Written 219837 spots for SRR1553610
+```
+
+When looking at the SRA run description it says that we're looking at RNA-seq data, which is important to note because that type of data contains its own biases relative to other types of sequencing data which one can see within the QC reports. The data was also generated on an Illumina HiSeq 2500. But essentially we're looking at transcriptome data here.
+
+If we look at the pre base sequence quality of both paired files respectively we see some data that looks alright and some data that looks potentially pretty bad.
+
+**SRR340134_1** ![First in Read Pairs](data/qc/SRR1553610_1_fastqc/Images/per_base_quality.png)
+
+**SRR340134_2** ![Second in Read Pairs](data/qc/SRR1553610_2_fastqc/Images/per_base_quality.png)
+
+What see in the first paired file is what one normally sees in a decent quality run. You see the quality stay above a phred score of 30 and then drop of as the length increases.
+
+However, if we look at the second paired file, the quality per base is all over the place. What this is saying is that there are some reads that contain very poor or ambiguous base calls along the entire read length. Looking at the per base N content  section tells us these aren't ambiguous calls but just base calls of very low quality.
+
+Next let's look at the per base sequence content for both files.
+
+**SRR340134_1** ![First in Read Pairs](data/qc/SRR1553610_1_fastqc/Images/per_base_sequence_content.png)
+
+**SRR340134_2** ![Second in Read Pairs](data/qc/SRR1553610_2_fastqc/Images/per_base_sequence_content.png)
+
+When performing RNA-seq it's common to see a fluctuation like what you see in the second paired read file where the first 5-10 bases exhibit a very peculiar but predictable flucation. This is due to the nonrandom primers used to reverse transcribe RNA into cDNA before sequencing and it's debated whether or not it's best to trim those base pairs or not in order to improve alignment accuracy. 
+
+However, when looking at the first paired read file that fluctuation extends much further into the reads than can be explained by nonrandom priming. What could be happening is that, although fastqc didn't detect any there could still be some type of adapter contamination on the 5' end of each read. 
+
+In addition while the fluctuations disappear at about the 60th base pair, the sequence content does not at up to the base pair distribution seen within the ebola genome which is actually more AT rich than it is GC rich, meaning that we could be looking at some type of additiona contamination - most likely human DNA.
+
+#### Whole genome sequencing of Plasmodium vivax
+
+To download this data I used the following command(s) and received the following error:
+
+```{r pvivax1, engine='bash', eval=F}
+$ fastq-dump --split-files -X 100000 SRR332573
+2015-06-23T18:02:04 fastq-dump.2.3.5 err: binary large object corrupt while reading binary large object within virtual database module - failed SRR332573
+
+=============================================================
+An error occurred during processing.
+A report was generated into the file '/root/ncbi_error_report.xml'.
+If the problem persists, you may consider sending the file
+to 'sra@ncbi.nlm.nih.gov' for assistance.
+=============================================================
+```
+
+When I look in my current directory I can see some of it was downloaded but not all of it...
+
+```{r pvivax2, engine='bash', eval=F}
+$ ll
+total 648M
+-rw-r--r-- 1 1000 staff  58M Jun 23 17:25 SRR1553610_1.fastq
+-rw-r--r-- 1 1000 staff  58M Jun 23 17:25 SRR1553610_2.fastq
+-rw-r--r-- 1 1000 staff  16M Jun 23 18:02 SRR332573_1.fastq
+-rw-r--r-- 1 1000 staff  16M Jun 23 18:02 SRR332573_2.fastq
+-rw-r--r-- 1 1000 staff  31M Jun 23 18:03 SRR340134_1.fastq
+-rw-r--r-- 1 1000 staff  31M Jun 23 18:03 SRR340134_2.fastq
+-rw-r--r-- 1 1000 staff 220M Jun 16 03:50 SRR519926_1.fastq
+-rw-r--r-- 1 1000 staff 323K Jun 16 03:53 SRR519926_1_fastqc.html
+-rw-r--r-- 1 1000 staff 381K Jun 16 03:53 SRR519926_1_fastqc.zip
+-rw-r--r-- 1 1000 staff 220M Jun 16 03:50 SRR519926_2.fastq
+-rw-r--r-- 1 1000 staff 306K Jun 16 03:53 SRR519926_2_fastqc.html
+-rw-r--r-- 1 1000 staff 349K Jun 16 03:53 SRR519926_2_fastqc.zip
+```
+
+Checking the file with less shows that ~10,000 spots are reads containing exclusively N's, meaning an ambiguous base call. THe end of the file ended up being reads exclusively containing A's.
+
+To download this data I used the following command(s):
+
+```{r vivax3, engine='bash', eval=F}
+$ fastq-dump --split-files -X 100000 SRR340134
+Read 100000 spots for SRR340134
+Written 100000 spots for SRR340134
+```
+
+#### Whole genome sequencing of Plasmodium knowlesi
+
+To download this data I used the following command(s):
+
+```{r pknowlesi1, engine='bash', eval=F}
+$ fastq-dump --split-files -X 100000 ERR366425
+Read 100000 spots for ERR366425
+Written 100000 spots for ERR366425
+```
+
+### Which data indicates a good quality run and which data indicates a poor quality run?
+
+An example of **a good quality run** can be seen in the whole genome sequencing of Plasmodium knowlesi. The per base sequence quality in the second read pair file shows that there's a slight decline in quality at the read nears the 130 base pair mark. But even if we were to trim every read by 20 base pairs from the 3' end you would still be left with 130 base pairs to use to align to some place in the genome which is still a very strong candidate for finding a unique match. The other flags are only warnings - one of them being for for base sequence content but this can be easily explained with a minimal understanding of the Plasmodium knowlesi genome in which there is a significant AT bias, which goes against the assumptions of fastqc.
+
+An example of **a poor quality run** (especially relative to the knowlesi sequencing run) is the vivax whole genome sequencing run under SRR340134. The thing to take into consideration is that I only downloaded the first 100,000 reads so there may be a lot more data within the rest of the file that doesn't skew the results as much as what you can see in the QC report. But within both read pair files you can see the quality scores drop off significantly about 50-60 base pairs into the reads for the first paired file while in the second paired file you see quality drop off within only 15 base pairs! In fact the quality of each base pair after 45 base pairs into each read is essentially 0. And according to the sequence length distribution plot each read is made up of 100 base pair length reads. So the second read pair file is essentially useless...
