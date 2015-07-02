@@ -9,7 +9,7 @@ output: html_document
 
 When running fastqc I used the *--nogroup* flag in order to prevent binning of basepairs along the read lengths. In addition each dataset downloaded consists of paired end reads.
 
-#### Zaire ebolavirus transcriptome sequencing from 2014 outbreak in Sierra Leone 
+#### Zaire ebolavirus genome sequencing from 2014 outbreak in Sierra Leone
 
 To download this data I used the following command(s):
 
@@ -19,29 +19,29 @@ Read 219837 spots for SRR1553610
 Written 219837 spots for SRR1553610
 ```
 
-When looking at the SRA run description it says that we're looking at RNA-seq data, which is important to note because that type of data contains its own biases relative to other types of sequencing data which one can see within the QC reports. The data was also generated on an Illumina HiSeq 2500. But essentially we're looking at transcriptome data here.
+When looking at the SRA run description it says that we're looking at data derived from RNA, which is important to note because that type of data contains its own biases relative to other types of sequencing data which one can see within the QC reports. This should also make sense considering the ebolavirus contains one single stranded negative-sense RNA-based genome. The data was also generated on an Illumina HiSeq 2500.
 
 If we look at the pre base sequence quality of both paired files respectively we see some data that looks alright and some data that looks potentially pretty bad.
 
-**SRR340134_1** ![First in Read Pairs](data/qc/SRR1553610_1_fastqc/Images/per_base_quality.png)
+**SRR1553610_1** ![First in Read Pairs](data/qc/SRR1553610_1_fastqc/Images/per_base_quality.png)
 
-**SRR340134_2** ![Second in Read Pairs](data/qc/SRR1553610_2_fastqc/Images/per_base_quality.png)
+**SRR1553610_2** ![Second in Read Pairs](data/qc/SRR1553610_2_fastqc/Images/per_base_quality.png)
 
 What see in the first paired file is what one normally sees in a decent quality run. You see the quality stay above a phred score of 30 and then drop of as the length increases.
 
-However, if we look at the second paired file, the quality per base is all over the place. What this is saying is that there are some reads that contain very poor or ambiguous base calls along the entire read length. Looking at the per base N content  section tells us these aren't ambiguous calls but just base calls of very low quality.
+However, if we look at the second paired file, the quality per base is all over the place. What this is saying is that there are some reads that contain very poor or ambiguous base calls along the entire read length. Looking at the per base N content section tells us these aren't ambiguous calls but just base calls of very low quality.
 
 Next let's look at the per base sequence content for both files.
 
-**SRR340134_1** ![First in Read Pairs](data/qc/SRR1553610_1_fastqc/Images/per_base_sequence_content.png)
+**SRR1553610_1** ![First in Read Pairs](data/qc/SRR1553610_1_fastqc/Images/per_base_sequence_content.png)
 
-**SRR340134_2** ![Second in Read Pairs](data/qc/SRR1553610_2_fastqc/Images/per_base_sequence_content.png)
+**SRR1553610_2** ![Second in Read Pairs](data/qc/SRR1553610_2_fastqc/Images/per_base_sequence_content.png)
 
-When performing RNA-seq it's common to see a fluctuation like what you see in the second paired read file where the first 5-10 bases exhibit a very peculiar but predictable flucation. This is due to the nonrandom primers used to reverse transcribe RNA into cDNA before sequencing and it's debated whether or not it's best to trim those base pairs or not in order to improve alignment accuracy. 
+When performing RNA-seq it's common to see a fluctuation like what you see in the second paired read file where the first 5-10 bases exhibit a predictable fluctuation. This is due to the nonrandom primers used to reverse transcribe RNA into cDNA before sequencing and it's debated whether or not it's best to trim those base pairs or not in order to improve alignment accuracy.
 
-However, when looking at the first paired read file that fluctuation extends much further into the reads than can be explained by nonrandom priming. What could be happening is that, although fastqc didn't detect any there could still be some type of adapter contamination on the 5' end of each read. 
+However, when looking at the first paired read file that fluctuation extends much further into the reads than can be explained by nonrandom priming. What could be happening is that, although fastqc didn't detect any there could still be some type of adapter contamination on the 5' end of each read.
 
-In addition while the fluctuations disappear at about the 60th base pair, the sequence content does not at up to the base pair distribution seen within the ebola genome which is actually more AT rich than it is GC rich, meaning that we could be looking at some type of additiona contamination - most likely human DNA.
+In addition while the fluctuations disappear at about the 60th base pair, the sequence content does not at up to the base pair distribution seen within the ebola genome which is actually more AT rich than it is GC rich, meaning that we could be looking at some type of additional contamination - most likely human DNA.
 
 #### Whole genome sequencing of Plasmodium vivax
 
@@ -78,7 +78,9 @@ total 648M
 -rw-r--r-- 1 1000 staff 349K Jun 16 03:53 SRR519926_2_fastqc.zip
 ```
 
-Checking the file with less shows that ~10,000 spots are reads containing exclusively N's, meaning an ambiguous base call. THe end of the file ended up being reads exclusively containing A's.
+Checking the file with less shows that ~10,000 spots are reads containing exclusively N's, meaning an ambiguous base call. The end of the file ended up being reads exclusively containing A's.
+
+According to a [forum on Biostars](https://www.biostars.org/p/128831/) this error is occuring due to some server malfunction on NCBI's side. I tried the command on a different day and was able to download the full fastq files using the same download command listed above. However, because I wasn't able to grab that specific run I simply found a different one.
 
 To download this data I used the following command(s):
 
@@ -88,15 +90,51 @@ Read 100000 spots for SRR340134
 Written 100000 spots for SRR340134
 ```
 
+According to the SRA description we're looking at 100bp paired end whole genome sequencing done on an Illumina HiSeq 2000.
+
+If we look at the duplication levels for each read within the pair, we can see that there is a decent amount of duplication occuring. If we deduplicated the reads based simply on the nucleotide content of the reads we would remove ~15% of the reads from each file! That most likely has to do with the number of reads containing only N's.
+
+**SRR340134_1** ![First in Read Pairs](data/qc/SRR340134_1_fastqc/Images/duplication_levels.png)
+
+**SRR340134_2** ![Second in Read Pairs](data/qc/SRR340134_2_fastqc/Images/duplication_levels.png)
+
+In the following two plots I'm not entirely sure what's going on. If we look at the [FastQC documentation](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/5%20Per%20Sequence%20GC%20Content.html) it tells us that it uses the observed data to build a model distribution. I'm assuming again that the long strings of N's within the read files is causing a problem in predicting an accurate theoretical distribution. We can see, however, in the actual GC count per read, that we have a peak around where we would expect the GC content to be for Plasmodium vivax.
+
+**SRR340134_1** ![First in Read Pairs](data/qc/SRR340134_1_fastqc/Images/per_sequence_gc_content.png)
+
+**SRR340134_2** ![Second in Read Pairs](data/qc/SRR340134_2_fastqc/Images/per_sequence_gc_content.png)
+
 #### Whole genome sequencing of Plasmodium knowlesi
 
-To download this data I used the following command(s):
+To download this data I used the following command:
 
 ```{r pknowlesi1, engine='bash', eval=F}
 $ fastq-dump --split-files -X 100000 ERR366425
 Read 100000 spots for ERR366425
 Written 100000 spots for ERR366425
 ```
+
+According to the SRA description, we should be looking at 150 bp paired-end whole genome sequencing reads that were run on an Illumina MiSeq.
+
+Looking through the FastQC report, the quality of the data looks very good. Almost all of the tests are marked as passed except for per base sequence quality plots but that's only because toward the end of the 150 bp reads the quality starts to dip into the "red" area marked as poor quality but the rest of the read stays above a score of 28. I want to look at the only other two plots tha raised warnings.
+
+The per base sequence content raised warnings for both reads within the pair. However, because Plasmodium knowlesi is known to have a biased genome relative to its nucleotide distribution this isn't surprising. The distribution of nucleotides stays constant from the beginning to the end of the reads so there's no indication of contamination either.
+
+**ERR366425_1** ![First in Read Pairs](data/qc/ERR366425_1_fastqc/Images/per_base_sequence_content.png)
+
+**ERR366425_2** ![Second in Read Pairs](data/qc/ERR366425_2_fastqc/Images/per_base_sequence_content.png)
+
+Finally, the kmer profiles plot also raised warnings. These plots are notoriously hard to analyze so I looked to the [documentation](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/11%20Kmer%20Content.html) for help.
+
+When comparing my plots to those in the documentation they don't look very alike. There are no clear trends in the data we see below but we can use the table to interpret what the spikes mean.
+
+For the first reads within the pair we see a spike for the sequence, **CTTAGAC**. However, if we look at the table, it has a p-value low enough to raise a warning based on the model built by FastQC (which also only uses the first 2% of reads to create that model) and it is enriched 144 times above expected however, in total, it only appears there 15 times out of 10,000 reads. So It's probably nothing to worry about.
+
+**ERR366425_1** ![First in Read Pairs](data/qc/ERR366425_1_fastqc/Images/kmer_profiles.png)
+
+For the second reads within the pear we see the same story except this time for the sequence **GGCGGGC** and it appears 10 times.
+
+**ERR366425_2** ![Second in Read Pairs](data/qc/ERR366425_2_fastqc/Images/kmer_profiles.png)
 
 ### Which data indicates a good quality run and which data indicates a poor quality run?
 

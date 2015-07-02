@@ -30,7 +30,7 @@ if [[ "${cmd}" == "-r" ]]; then
 
 	docker run -i -t \
 	--name="appbio-ubuntu" \
-	-m 2g \
+	-m 1g \
 	-v $HOME/applied-bioinformatics/:/applied-bioinformatics/ \
 	thephilross/appbio \
 	/bin/bash
