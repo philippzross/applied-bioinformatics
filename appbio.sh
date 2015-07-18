@@ -3,14 +3,14 @@
 # catch errors
 set -euo pipefail
 
-cmd=$1
-
 if [[ $# -ne 1 ]]; then
   echo -e "\nusage: $(basename $0) <cmd>\n"
 	echo -e "Starts and stops applied bioinformatics course containers\n"
 	echo -e "-r will start the containers and -s will stop them"
 	exit
 fi
+
+cmd=$1
 
 if [[ "${cmd}" == "-r" ]]; then
 

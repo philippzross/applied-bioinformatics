@@ -1,0 +1,211 @@
+---
+title: "Homework 4"
+author: Philipp Ross
+date: "July 15 2015"
+output:
+  BiocStyle::html_document:
+    toc: true
+    highlight: pygments
+---
+
+## Comparing QC Tools
+
+Before choosing which tool to use it's important to run both with similar parameters and compare their outputs. Sometimes you don't always have time to do this step but when you do it's best to follow through with it in order to make sure you are using the best tool for the job. It can be difficult to know what to expect a lot of the times from just reading the manual.
+
+So first I downloaded the data as seen in the lecture:
+```{r, download-test-data, engine='bash', eval=F}
+$ fastq-dump --split-files SRR519926
+Read 400596 spots for SRR519926
+Written 400596 spots for SRR519926
+```
+
+and then ran commands on both of them to see what the outputs told me.
+
+### Running prinseq
+```{r, run-prinseq, engine='bash', eval=F}
+$ time prinseq-lite -fastq SRR519926_1.fastq -trim_qual_right 30 -trim_qual_window 4 -min_len 35 -out_good prinseq_1
+Input and filter stats:
+	Input sequences: 400,596
+	Input bases: 100,549,596
+	Input mean length: 251.00
+	Good sequences: 386,142 (96.39%)
+	Good bases: 61,669,963
+	Good mean length: 159.71
+	Bad sequences: 14,454 (3.61%)
+	Bad bases: 3,627,954
+	Bad mean length: 251.00
+	Sequences filtered by specified parameters:
+	trim_qual_right: 8626
+	min_len: 5828
+
+real	4m0.639s
+user	3m45.240s
+sys	  0m30.370s
+```
+
+### Running trimmomatic
+```{r, run-trimmomatic, engine='bash', eval=F}
+$ time trimmomatic SE -phred33 SRR519926_1.fastq trimmomatic_1.fq SLIDINGWINDOW:4:30 MINLEN:35
+TrimmomaticSE: Started with arguments: -phred33 SRR519926_1.fastq trimmomatic_1.fq SLIDINGWINDOW:4:30 MINLEN:35
+Automatically using 4 threads
+Input Reads: 400596 Surviving: 340207 (84.93%) Dropped: 60389 (15.07%)
+TrimmomaticSE: Completed successfully
+
+real	0m11.339s
+user	0m4.300s
+sys	  0m6.490s
+```
+
+### Results
+
+As mentioned in the lectures trimmomatic is insanely fast. Here we see that when run under the same parameters **trimmomatic runs ~21x faster!** Prinseq does provide a nise user-friendly output output after running the command that includes a lot more information than the output of trimmomatic albeit some of it might not always be completely necessary.
+
+So although trimmomatic is a lot faster and typically the tool I prefer to use I'm going to try out prinseq because I have limited experience using it and I like the informative output it provides for each run in addition to it's flexibility. You can also download a command line tool to generate the same graphs the web version of the tool does but since we're using fastqc to analyze the output, for now there is no need.
+
+## QC on Ebola Sequencing Runs
+
+I decided to download data from the ebola sequencing runs looking at different isolates to keep things interesting. The runs and isolate names are below:
+
+`SRR1734993` - Zaire ebolavirus isolate Ebola virus/H.sapiens-wt/SLE/2014/Makona-G5844.1  
+`SRR1553424` - Ebola virus/H.sapiens-wt/SLE/2014/Makona-EM106  
+`SRR1613384` - Ebola virus H.sapiens-wt/SLE/2014/ManoRiver-G3682-1  
+
+For each run I:
+
+1. Downloaded the data  
+2. Ran fastq
+3. Trimmed the data using prinseq and the following parameters
+  + A sliding quality window of length 4 and quality 30  
+  + A minimum length of 35 nucleotides  
+  + Removing any sequences containing an N  
+  + Removing any reads that were exact duplicates of one another  
+  
+I looked only at the outputs of the first read pair file rather than trimming them by adding paired end information to prinseq using the `-fastq2` flag which is typically what should be done in order to keep read pairs only if both reads within a pair pass your thresholds.
+
+Considering we're looking at the Ebola Virus which has an RNA genome removing duplicates may or may not be recommended but it really depends on your downstream applications. If you're looking to quantify abundance then it's probably important you keep duplicates. However, if you're looking to the assemble the genome maybe not. I'm not a virologist but intuitively I could imagine there being many copies of the virus within a single cell so if you're looking to determine that number along with the total number of transcripts then keeping duplicates is probably important. I decided to remove duplicate sequences just to see what would happen.
+
+### Makona-G5844.1
+
+First download the data:
+
+```{r, d1, engine='bash', eval=F}
+$ fastq-dump --split-files SRR1734993
+Read 545171 spots for SRR1734993
+Written 545171 spots for SRR1734993
+```
+
+Next run fastqc, prinseq, and fastqc again to compare before and after:
+
+```{r, s1, engine='bash', eval=F}
+Input and filter stats:
+	Input sequences: 545,171
+	Input bases: 55,062,271
+	Input mean length: 101.00
+	Good sequences: 362,351 (66.47%)
+	Good bases: 30,195,382
+	Good mean length: 83.33
+	Bad sequences: 182,820 (33.53%)
+	Bad bases: 18,464,820
+	Bad mean length: 101.00
+	Sequences filtered by specified parameters:
+	trim_qual_right: 144
+	min_len: 33118
+	ns_max_n: 33
+	derep: 149525
+```
+
+Based on our quality trimming and filtering we can see that a large number of reads were filtered out because they no longer met the minimum length of 35 nucleotides but a much larger number of reads were removed because they were duplicates of one another. **~80% of the reads were removed because they were exact duplicates of one another.** Not many reads containing N's so that's good.
+
+##### Per Base Quality Before
+![](data/raw/SRR1734993_1_fastqc/Images/per_base_quality.png)
+
+##### Per Base Quality After
+![](data/trimmed/SRR1734993_1_good_fastqc/Images/per_base_quality.png)
+
+When we look at the per base quality graphs we can see prinseq did it's job very nicely in removing some of the low quality bases from the 3' end of the reads. And it did it far less aggressively than trimmomatic probably would have. The Ebola Virus genome is about 19kb and here we have ~500,000 reads each 101 basepairs long. So this sample was sequenced to a theoretical depth of ~2500x (if none of the reads actually belong to the human genome which is highly unlikely). Even if we were more aggressive we more than likely still would have had plenty of reads to do downstream analysis.
+
+
+### Makona-EM106
+
+First download the data:
+
+```{r, d2, engine='bash', eval=F}
+$ fastq-dump --split-files SRR1553424
+Read 392848 spots for SRR1553424
+Written 392848 spots for SRR1553424
+```
+
+Next run fastqc, prinseq, and fastqc again to compare before and after:
+
+```{r, s2, engine='bash', eval=F}
+Input and filter stats:
+	Input sequences: 392,848
+	Input bases: 39,677,648
+	Input mean length: 101.00
+	Good sequences: 294,579 (74.99%)
+	Good bases: 28,248,438
+	Good mean length: 95.89
+	Bad sequences: 98,269 (25.01%)
+	Bad bases: 9,925,169
+	Bad mean length: 101.00
+	Sequences filtered by specified parameters:
+	trim_qual_right: 189
+	min_len: 9734
+	ns_max_n: 3
+	derep: 88343
+```
+
+In this run we have less input sequences than for the run above and also remove a smaller percetentage of reads. Very few reads have N's in them and again, the vast majority of reads removed were removed because they were exact duplicates of one another. The mean length of the reads left over are still very close to the starting input mean length although we know nothing about the variation from these numbers.
+
+##### Pre Base Sequence Content Before
+![](data/raw/SRR1553424_1_fastqc/Images/per_base_sequence_content.png)
+
+##### Pre Base Sequence Content After
+![](data/trimmed/SRR1553424_1_good_fastqc/Images/per_base_sequence_content.png)
+
+The per base sequence content is a module that failed both before and after despite our trimming of the data. While it does look slightly more constant going from the beginning to the end of the read (ignoring the start of the read which is a common occurence in RNA-seq using the Illumina library kits) you can still see the lines diverge towards the end indicating possible adapter contamination.
+
+### ManoRiver-G3682-1
+
+First download the data:
+
+```{r, d3, engine='bash', eval=F}
+$ fastq-dump --split-files SRR1613384
+Read 89972 spots for SRR1613384
+Written 89972 spots for SRR1613384
+```
+
+Next run fastqc, prinseq, and fastqc again to compare before and after:
+
+```{r, s3, engine='bash', eval=F}
+Input and filter stats:
+	Input sequences: 89,972
+	Input bases: 13,495,800
+	Input mean length: 150.00
+	Good sequences: 43,916 (48.81%)
+	Good bases: 6,517,245
+	Good mean length: 148.40
+	Bad sequences: 46,056 (51.19%)
+	Bad bases: 6,908,400
+	Bad mean length: 150.00
+	Sequences filtered by specified parameters:
+	min_len: 124
+	derep: 45932
+```
+
+
+We see the fewest amount of input sequences from this run. However, half of the reads appear to be exact duplicates of one another. The reads here are also 150 base pairs long instead of 101 like the other two runs. From an initial glance it doesn't look like many of the reads were of particularly low quality in the raw file prior to trimming.
+
+##### Sequence Duplication Levels Before
+![](data/raw/SRR1613384_1_fastqc/Images/duplication_levels.png)
+
+##### Sequence Duplication Levels After
+![](data/trimmed/SRR1613384_1_good_fastqc/Images/duplication_levels.png)
+
+If I had looked at the fastqc report prior to running my prinseq command I would have noticed that if I had deduplicated the data then I would remove the vast majority of the reads! According to fastqc (which I believe uses a kmer approach to check duplicates which is why the number is lower than the actual number of reads that were removed) if I had deduplicated the reads only 30% would remain of the total!
+
+After removing entire reads that were exact duplicates of one another it still tells me that I could deduplicate further if I split each read into a kmer of size k. According to fastqc if I did that I would be left with 70% of the reads I've already trimmed. Why there is so much sequence duplication I'm not entirely sure. The other quality metrics look really good, in fact. Perhaps there is a bias occuring for a particular transcript whether that be of human or ebola origin. 
+
+### Conclusions
+
+Just from looking at the initial statistics that prinseq gives you it's easy to see that some data sets were of higher quality than others. Interestingly enough the last dataset was of the highest initial quality but the largest proportion of reads were removed after quality trimming and filtering using prinseq. It's pretty easy to accidentally remove a large proportion of the reads in your raw sample if you don't pay good enough attention to the initial QC report and what you're going to do downstream with the reads you'll have left over. At the same time with the added flexibility of prinseq it's easy to get a great general overview of your raw data and how you can improve upon it if you need to in order to make your data even more high quality.

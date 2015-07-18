@@ -1,0 +1,43 @@
+########################################
+# Program: water
+# Rundate: Fri 17 Jul 2015 15:05:10
+# Commandline: water
+#    -auto
+#    -stdout
+#    -asequence emboss_water-I20150717-150509-0038-57643248-pg.asequence
+#    -bsequence emboss_water-I20150717-150509-0038-57643248-pg.bsequence
+#    -datafile EBLOSUM62
+#    -gapopen 10.0
+#    -gapextend 0.5
+#    -aformat3 pair
+#    -sprotein1
+#    -sprotein2
+# Align_format: pair
+# Report_file: stdout
+########################################
+
+#=======================================
+#
+# Aligned_sequences: 2
+# 1: 1
+# 2: 2
+# Matrix: EBLOSUM62
+# Gap_penalty: 10.0
+# Extend_penalty: 0.5
+#
+# Length: 3
+# Identity:       3/3 (100.0%)
+# Similarity:     3/3 (100.0%)
+# Gaps:           0/3 ( 0.0%)
+# Score: 15.0
+# 
+#
+#=======================================
+
+1                  6 INE      8
+                     |||
+2                  6 INE      8
+
+
+#---------------------------------------
+#---------------------------------------
