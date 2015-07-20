@@ -1,0 +1,11 @@
+---
+title: "Homework 6"
+author: Philipp Ross
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    toc: true
+    highlight: pygments
+---
+
+
