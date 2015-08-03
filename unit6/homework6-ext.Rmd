@@ -11,7 +11,12 @@ output:
 ```{r, setup, include=F, echo=F}
 library(readr)
 library(Biostrings)
+library(msa)
 ```
+
+# Overview
+
+Sequence alignment is fundamental to analyzing genomics data. Here I'll look to understand pairwise alignment using BLAST+ and multiple sequence alignment using the bioconductor package, [msa](http://bioconductor.org/packages/release/bioc/html/msa.html). I'll be looking at data from multiple ebolavirus outbreaks and new data that relates Plasmodium species to recently sequenced Chromerids through a common unicellualar phototrophic ancestor. But first I wanted to understand how BLAST works.
 
 ## Understanding and Tuning BLAST
 
@@ -283,3 +288,17 @@ Based on our query length of 60 base pairs, since we're looking for a sequence s
 **In conclusion** I can say with a good amount of certainty that the oligo I'm testing to see whether it can be used as a probe within my hypothetical microarray design is not specific enough to my gene of interest and targets many other genes as well.
 
 What are these genes? Every single one of them is a copy of PfEMP1 located elsewhere in the genome just like I was expecting to find, thus highlighting the difficulty in measuring gene expression for these antigenic variance genes.
+
+## Comparing Ebola Proteins - BLASTP
+
+After figuring out how to properly tune BLAST to get the results I was looking for I wanted to work with some real data.
+
+Look to recreate Table 2 from that paper by comparing ebolavirus proteins from different species and different outbreaks over the years. Give a brief overview of what you find. Remember the importance of the mucin-like domain. What kinds of mutations/differences are we seeing? What consequences does that have for the virus, for the host, and for protein function?
+
+## Comparing ApiAP2 Proteins in Chromerids versus Plasmodium - BLASTX & TBLASTX
+
+Interested in looking at the number of AP2 proteins in Chromerid genomes and which are most similar to ApiAP2 proteins. Which do we see and which do we not see? How similar are they? Similar enough to infer some type of function? Some kind of possible evolutionary information that can tell us something about the ApiAP2 protein functions?
+
+Remember that they have expression data as well. Can look up what that looks like for the genes of interest in Chromerids.
+
+Remember to look at ApiAP2 proteins within different Plasmodium species to get a better idea of potential evolutionary relationships and function.
