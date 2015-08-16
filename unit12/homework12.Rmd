@@ -1,0 +1,316 @@
+---
+title: "Homework 12"
+author: Philipp Ross
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    toc: true
+    highlight: pygments
+---
+
+# High Throughput Parisitology
+
+The paristology community, due to technical limitations, is frequently behind in the latest sequencing techniques and protocols. It takes time to adopt the newest and highest resolution experiments to Plasmodium due to the high AT content of it's genome and the difficulty in acquiring enough material from an in vitro culture system. Collecting enough material for sequencing from a field isolate is an enormous challenge as the amount of contaminant DNA can often be substantial.
+
+Due to the slow adoption of high throughput methodology not many parisitology labs are equipped to handle the data deluge that ensues from next generation sequencing and so most of those experiments and studies come out of the same handful of labs every year.
+
+In addition there appears to be a lot of mistrust in popular tools within the bioinformatics community as the labs that do sequencing tend to stay away from the most commonly used ones since they're often built to analyze more common model organisms such as the human genome. Custom scripts and methods within papers tend to be very common.
+
+## RNA-seq
+
+Unfortunately, the FPKM metric has only recently started to move through the parisitology community and is widely becoming excepted as a standard for RNA-seq quantification as it looks mostly similar when compared back to previous microarray data sets that were considered the gold standard of expression data.
+
+I'd be interested in finding out whether we can speed up the adoption process and convince more members of the community to not only adopt a common means of calculating transcript abundance when performing mRNA-seq but to use a more modern metric, such as TPM, which appears to be latest in a wave of transcript abundance models.
+
+## Comparing Methodologies
+
+I will look to compare quantification methods looking at classic alignment to a reference and count versus a new concept known as pseudoalignment that claims to be many times faster without losting accuracy. I've wanted to test [sailfish](http://www.cs.cmu.edu/~ckingsf/software/sailfish/) for a long time now but have always had difficulty either installing it or getting it to run once it's installed.
+
+Recently I was very happy to see a new program that implements a new method, [kallisto](http://pachterlab.github.io/kallisto/) by Lior Pachter, the original creater of FPKMs, so I decided to try that out instead.
+
+### Tophat2 + Cuffdiff
+
+First let's look at the run times of the Tuxedo Suite.
+
+#### Run time
+
+I ran tophat2 with the following command:
+
+```{r, eval=F, engine="bash"}
+$ tophat -G pf3d7_10_v3_exons.gff -o $sample_tophat -p 8 pf3d7_bwtidx $sample_1.fastq.gz $sample_2.fastq.gz
+```
+
+```
+First sample
+real    48m36.551s
+user    104m12.385s
+sys     23m57.233s
+
+Second sample
+real    50m39.023s
+user    108m22.984s
+sys     21m7.098s
+```
+
+I decided to try to run cuffdiff after wards to complete the differential expression analysis but received the same segmentation fault that was experienced in the lecture...so I hit a wall early on.
+
+```{r, eval=F, engin="bash"}
+$ cuffdiff -o cuffdiff -p 8 pf3d7_10_v3_exons.gff LT_tophat/accepted_hits.bam SC_tophat/accepted_hits.bam
+You are using Cufflinks v2.2.1, which is the most recent release.
+```
+
+```
+Segmentation fault: 11
+```
+
+### Kallisto + Limma
+
+Kallisto was very user-friendly and ran very quickly for both the indexing step and the quantification step.
+
+#### Indexing
+
+```{r, eval=F, engin="bash"}
+$ kallisto index -i pf3d7_exons_kindex -k 31 pf3d7_10_v3_exons.fasta
+```
+
+```
+[build] loading fasta file pf3d7_10_v3_exons.fasta
+[build] k-mer length: 31
+[build] counting k-mers ... done.
+[build] building target de Bruijn graph ...  done
+[build] creating equivalence classes ...  done
+[build] target de Bruijn graph has 4015 contigs and contains 804073 k-mers
+```
+
+### Run time
+
+```{r, eval=F, engin="bash"}
+$ for sample in LT SC; do echo -e "$sample\n"; time kallisto quant -i pf3d7_exons_kindex -o ${sample}_kallisto --pseudobam -b 100 -t 8 ${sample}_1.fastq.gz ${sample}_2.fastq[5/1999]
+mtools view -Sb - | samtools sort -o - tmp > ${sample}_pseudo.bam; done
+```
+
+```
+LT
+
+[quant] fragment length distribution will be estimated from the data
+[index] k-mer length: 31
+[index] number of targets: 1,140
+[index] number of k-mers: 804,079
+[index] number of equivalence classes: 1,465
+[quant] running in paired-end mode
+[quant] will process pair 1: LT_1.fastq.gz
+                             LT_2.fastq.gz
+[quant] finding pseudoalignments for the reads ... done
+[quant] processed 6,964,029 reads, 284,418 reads pseudoaligned
+[quant] estimated average fragment length: 134.918
+[   em] quantifying the abundances ... done
+[   em] the Expectation-Maximization algorithm ran for 269 rounds
+[bstrp] number of EM bootstraps complete: 100
+
+[bam_sort_core] merging from 4 files...
+
+real    3m23.638s
+user    3m33.680s
+sys     0m3.037s
+SC
+
+[quant] fragment length distribution will be estimated from the data
+[index] k-mer length: 31
+[index] number of targets: 1,140
+[index] number of k-mers: 804,079
+[index] number of equivalence classes: 1,465
+[quant] running in paired-end mode
+[quant] will process pair 1: SC_1.fastq.gz
+                             SC_2.fastq.gz
+[quant] finding pseudoalignments for the reads ... done
+[quant] processed 7,180,224 reads, 390,788 reads pseudoaligned
+[quant] estimated average fragment length: 138.82
+[   em] quantifying the abundances ... done
+[   em] the Expectation-Maximization algorithm ran for 181 rounds
+[bstrp] number of EM bootstraps complete: 100
+
+[bam_sort_core] merging from 4 files...
+
+real    3m38.977s
+user    3m50.783s
+sys     0m3.266s
+```
+
+### Comparing Speed
+
+Kallisto ran ~16x faster for this small example. I imagine that as the dataset gets larger that gap widens.
+
+### Compare "Alignments"
+
+We can check the output of the alignments quickly using samtools flagstat. Below are the results.
+
+```
+$ samtools flagstat SC_tophat/accepted_hits.bam
+932730 + 0 in total (QC-passed reads + QC-failed reads)
+86417 + 0 secondary
+0 + 0 supplementary
+0 + 0 duplicates
+932730 + 0 mapped (100.00%:nan%)
+846313 + 0 paired in sequencing
+434346 + 0 read1
+411967 + 0 read2
+559570 + 0 properly paired (66.12%:nan%)
+791522 + 0 with itself and mate mapped
+54791 + 0 singletons (6.47%:nan%)
+0 + 0 with mate mapped to a different chr
+0 + 0 with mate mapped to a different chr (mapQ>=5)
+```
+
+```
+$ samtools flagstat LT_tophat/accepted_hits.bam
+753312 + 0 in total (QC-passed reads + QC-failed reads)
+16608 + 0 secondary
+0 + 0 supplementary
+0 + 0 duplicates
+753312 + 0 mapped (100.00%:nan%)
+736704 + 0 paired in sequencing
+379036 + 0 read1
+357668 + 0 read2
+498312 + 0 properly paired (67.64%:nan%)
+698992 + 0 with itself and mate mapped
+37712 + 0 singletons (5.12%:nan%)
+0 + 0 with mate mapped to a different chr
+0 + 0 with mate mapped to a different chr (mapQ>=5)
+```
+
+```
+$ samtools flagstat LT_pseudo.bam
+13950772 + 0 in total (QC-passed reads + QC-failed reads)
+0 + 0 secondary
+0 + 0 supplementary
+0 + 0 duplicates
+510529 + 0 mapped (3.66%:nan%)
+13950772 + 0 paired in sequencing
+6975386 + 0 read1
+6975386 + 0 read2
+429508 + 0 properly paired (3.08%:nan%)
+429508 + 0 with itself and mate mapped
+81021 + 0 singletons (0.58%:nan%)
+0 + 0 with mate mapped to a different chr
+0 + 0 with mate mapped to a different chr (mapQ>=5)
+```
+
+```
+$ samtools flagstat SC_pseudo.bam
+14382466 + 0 in total (QC-passed reads + QC-failed reads)
+0 + 0 secondary
+0 + 0 supplementary
+0 + 0 duplicates
+699877 + 0 mapped (4.87%:nan%)
+14382466 + 0 paired in sequencing
+7191233 + 0 read1
+7191233 + 0 read2
+596160 + 0 properly paired (4.15%:nan%)
+596160 + 0 with itself and mate mapped
+103717 + 0 singletons (0.72%:nan%)
+0 + 0 with mate mapped to a different chr
+0 + 0 with mate mapped to a different chr (mapQ>=5)
+```
+
+### Comparing Differential Expression
+
+In order to compare differential expression I was forced to use counts from tophat2 and kallisto and input the raw counts into DESeq2. Kallisto outputs a column per sample called, estimated_counts, so I used those as counts for kallisto while for tophat I used a combination of bedtools intersect and groupby looking over exonic intervals to calculate how many reads overlapped each transcript.
+
+The following script takes care of that.
+
+```{r, warning=F, message=F}
+# load libraries
+require(dplyr, quietly=TRUE)
+require(readr, quietly=TRUE)
+require(DESeq2, quietly=TRUE)
+
+# information to load the files and create DESeq2 data structure
+sample_list <- c("LT", "SC")
+colData <- data.frame(condition = c("LT", "SC"), type = c("paired-end", "paired-end"))
+
+# KALLISTO ====================================================================
+
+# import files
+for(i in 1:length(sample_list)){
+  tmp <- read_tsv(file = paste0("../projects/plasmo/", sample_list[i], "_kallisto/grouped_abundances.tsv")) 
+  assign(sample_list[i], tmp)
+}
+
+# manipulate data for DESeq2 to read
+counts <- inner_join(LT, SC, by = "target_id")[,c(1,4,8)]
+rownames(counts) <- counts$target_id
+counts$target_id <- NULL
+colnames(counts) <- c("LT", "SC")
+counts$LT <- as.integer(counts$LT)
+counts$SC <- as.integer(counts$SC)
+
+# calculate differential expression and save result
+dds <- DESeqDataSetFromMatrix(countData = counts, colData = colData, design = ~ condition)
+dds <- DESeq(dds)
+res_kallisto <- results(dds)
+
+# TOPHAT2 =====================================================================
+
+# import files
+for(i in 1:length(sample_list)){
+  tmp <- read_tsv(file = paste0("../projects/plasmo/", sample_list[i], "_tophat/counts.tsv")) 
+  assign(sample_list[i], tmp)
+}
+
+# manipulate data for DESeq2 to read
+colnames(LT) <- c("target_id", "LT")
+colnames(SC) <- c("target_id", "SC")
+counts <- inner_join(LT, SC, by = "target_id")
+rownames(counts) <- counts$target_id
+counts$target_id <- NULL
+
+# calculate differential expression and save result
+dds <- DESeqDataSetFromMatrix(countData = counts, colData = colData, design = ~ condition)
+dds <- DESeq(dds)
+res_tophat <- results(dds)
+```
+
+To start let's look at summaries of both.
+
+```{r}
+summary(res_tophat)
+plotMA(res_tophat, main="Tophat2", ylim=c(-10,10))
+summary(res_kallisto)
+plotMA(res_kallisto, main="Kallisto", ylim=c(-10,10))
+```
+
+So that's all nice and good. We can see that the majority of trancripts are not being reported as differentially expressed and that there are more for kallisto than for tophat. But what do the distribution of p-values look like?
+
+```{r}
+tophat_df <- data.frame(gene_id = rownames(res_tophat), val = res_tophat[,2])
+kallisto_df <- data.frame(gene_id = rownames(res_kallisto), val = res_kallisto[,2])
+
+df <- inner_join(tophat_df, kallisto_df, by = "gene_id")
+colnames(df) <- c("gene_id", "tophat", "kallisto")
+
+hist(res_kallisto[,5])
+hist(res_tophat[,5])
+```
+
+So from the looks of this it seems like the kallisto method is more conservative for some reason. What if we look at the log2 fold change values per transcript. Are they extremely different from one another or do they mostly follow a nice correlated relationship?
+
+```{r}
+fit <- lm(df$tophat ~ df$kallisto)
+plot(df$tophat, df$kallisto)
+abline(fit, col="red")
+cor(df$tophat, df$kallisto, use="complete")
+```
+
+It looks like the two methods are mostly in agreement!
+
+### Other Noticeable Differences
+
+#### BAM files differences
+
+Kallisto output what it called psuedo SAM files. However, unlike the tophat2 accepted_hits.bam files these files were much larger and this was because by default kallisto outputs every read while the accepted_hits.bam files contain only mapped reads that pass tophat2's default filters.
+
+## Conclusions
+
+Based on an initial look at the summaries it seems like the approach I took calculated a small number of differential transcripts for both count inputs. The data we're looking at here is actually a time course between two different stages of the parasite's life cycle so there should be some down-regulated and some upregulated transcripts.
+
+Based on the statistical model, I assume the this was NOT the correct way to call differential transcripts for a time course or else you'd see far more significant transcripts than it shows above. If I had more time I would've looked into more detailed differences between the two outputs.

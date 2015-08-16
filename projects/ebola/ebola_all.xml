@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Session genome="ebola_2014_KJ660346.2" hasGeneTrack="false" hasSequenceTrack="true" locus="gi|674810549|gb|KJ660346.2|:762-828" path="/Users/llinaslab/applied-bioinformatics/projects/ebola/ebola_all.xml" version="8">
+    <Resources>
+        <Resource path="data-bwa/may/ten_percent_aln.bam"/>
+        <Resource path="data-bwa/aug/aln.bam"/>
+    </Resources>
+    <Panel height="57" name="DataPanel" width="1000">
+        <Track altColor="0,0,178" autoScale="false" color="0,0,178" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" id="Reference sequence" name="Reference sequence" sortable="false" visible="true"/>
+    </Panel>
+    <Panel height="8137" name="Panel1439620630697" width="1000">
+        <Track altColor="0,0,178" autoScale="true" color="175,175,175" colorScale="ContinuousColorScale;0.0;4613.0;255,255,255;175,175,175" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" id="/Users/llinaslab/applied-bioinformatics/projects/ebola/data-bwa/may/ten_percent_aln.bam_coverage" name="May Cov" showReference="false" snpThreshold="0.2" sortable="true" visible="true">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="3805.0" minimum="0.0" type="LOG"/>
+        </Track>
+        <Track altColor="0,0,178" autoScale="true" color="175,175,175" colorScale="ContinuousColorScale;0.0;8959.0;255,255,255;175,175,175" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" id="/Users/llinaslab/applied-bioinformatics/projects/ebola/data-bwa/aug/aln.bam_coverage" name="Aug Cov" showReference="false" snpThreshold="0.2" sortable="true" visible="true">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="1937.0" minimum="0.0" type="LOG"/>
+        </Track>
+        <Track altColor="0,0,178" autoScale="false" color="0,0,178" displayMode="EXPANDED" featureVisibilityWindow="-1" fontSize="10" id="/Users/llinaslab/applied-bioinformatics/projects/ebola/data-bwa/may/ten_percent_aln.bam" name="May" showSpliceJunctions="false" sortable="true" visible="true">
+            <RenderOptions colorByTag="" colorOption="NONE" flagUnmappedPairs="true" groupByTag="" maxInsertSize="1000" minInsertSize="50" shadeBasesOption="QUALITY" shadeCenters="true" showAllBases="false" sortByTag=""/>
+        </Track>
+    </Panel>
+    <Panel height="8407" name="Panel1439620645193" width="1000">
+        <Track altColor="0,0,178" autoScale="false" color="0,0,178" displayMode="EXPANDED" featureVisibilityWindow="-1" fontSize="10" id="/Users/llinaslab/applied-bioinformatics/projects/ebola/data-bwa/aug/aln.bam" name="Aug" showSpliceJunctions="false" sortable="true" visible="true">
+            <RenderOptions colorByTag="" colorOption="NONE" flagUnmappedPairs="true" groupByTag="" maxInsertSize="1000" minInsertSize="50" shadeBasesOption="QUALITY" shadeCenters="true" showAllBases="false" sortByTag=""/>
+        </Track>
+    </Panel>
+    <PanelLayout dividerFractions="0.11069418386491557,0.6210131332082551,0.9831144465290806"/>
+    <HiddenAttributes>
+        <Attribute name="DATA FILE"/>
+        <Attribute name="DATA TYPE"/>
+        <Attribute name="NAME"/>
+    </HiddenAttributes>
+</Session>

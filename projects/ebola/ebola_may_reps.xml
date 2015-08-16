@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Session genome="ebola_2014_KJ660346.2" hasGeneTrack="false" hasSequenceTrack="true" locus="gi|674810549|gb|KJ660346.2|:1-18959" path="/Users/llinaslab/applied-bioinformatics/projects/ebola/ebola_may_reps.xml" version="8">
+    <Resources>
+        <Resource path="data-bwa/may/aln_1.bam"/>
+        <Resource path="data-bwa/may/aln_2.bam"/>
+    </Resources>
+    <Panel height="7969" name="Panel1439622769857" width="1000">
+        <Track altColor="0,0,178" autoScale="true" color="175,175,175" colorScale="ContinuousColorScale;0.0;27270.0;255,255,255;175,175,175" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" id="/Users/llinaslab/applied-bioinformatics/projects/ebola/data-bwa/may/aln_1.bam_coverage" name="May Rep 1" showReference="false" snpThreshold="0.2" sortable="true" visible="true">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="27270.0" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track altColor="0,0,178" autoScale="true" color="175,175,175" colorScale="ContinuousColorScale;0.0;18824.0;255,255,255;175,175,175" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" id="/Users/llinaslab/applied-bioinformatics/projects/ebola/data-bwa/may/aln_2.bam_coverage" name="May Rep 2" showReference="false" snpThreshold="0.2" sortable="true" visible="true">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="18824.0" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track altColor="0,0,178" autoScale="false" color="0,0,178" displayMode="EXPANDED" featureVisibilityWindow="-1" fontSize="10" id="/Users/llinaslab/applied-bioinformatics/projects/ebola/data-bwa/may/aln_1.bam" name="May Rep 1" showSpliceJunctions="false" sortable="true" visible="true">
+            <RenderOptions colorByTag="" colorOption="NONE" flagUnmappedPairs="true" groupByTag="" maxInsertSize="1000" minInsertSize="50" shadeBasesOption="QUALITY" shadeCenters="true" showAllBases="false" sortByTag=""/>
+        </Track>
+    </Panel>
+    <Panel height="8561" name="Panel1439622769865" width="1000">
+        <Track altColor="0,0,178" autoScale="false" color="0,0,178" displayMode="EXPANDED" featureVisibilityWindow="-1" fontSize="10" id="/Users/llinaslab/applied-bioinformatics/projects/ebola/data-bwa/may/aln_2.bam" name="May Rep 2" showSpliceJunctions="false" sortable="true" visible="true">
+            <RenderOptions colorByTag="" colorOption="NONE" flagUnmappedPairs="true" groupByTag="" maxInsertSize="1000" minInsertSize="50" shadeBasesOption="QUALITY" shadeCenters="true" showAllBases="false" sortByTag=""/>
+        </Track>
+    </Panel>
+    <Panel height="50" name="FeaturePanel" width="1000">
+        <Track altColor="0,0,178" autoScale="false" color="0,0,178" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" id="Reference sequence" name="Reference sequence" sortable="false" visible="true"/>
+    </Panel>
+    <PanelLayout dividerFractions="0.01125703564727955,0.5422138836772983,0.8968105065666041"/>
+    <HiddenAttributes>
+        <Attribute name="DATA FILE"/>
+        <Attribute name="DATA TYPE"/>
+        <Attribute name="NAME"/>
+    </HiddenAttributes>
+</Session>

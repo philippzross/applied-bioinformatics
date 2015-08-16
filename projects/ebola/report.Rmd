@@ -1,0 +1,49 @@
+---
+title: "Ebola Surveillance"
+author: Philipp Ross
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    toc: true
+    highlight: pygments
+---
+
+This report connects with the homework for units 7, 8, 9, and 10. I'll be looking to recreate a small piece of the analysis done in Gire et al. 2014 where I look at ebola isolates sampled at different time points during 2014 to see if I can differentiate them by their variant calls.
+
+Collection Dates and Accessions:
+
+* May 28th    - `SRR1553468`
+* July 8th    - `SRR1972721`
+* August 20th - `SRR1735146`
+
+That information can be found [here](http://www.ncbi.nlm.nih.gov/Traces/study/?acc=SRP045416).
+
+The reference genome I'll be comparing these samples to is the assembly in Figure 4 of Gire et al. 2014, the Kissidougou Guinean sequence (accesion KJ660346).
+
+```{r child = 'homework7.Rmd'}
+```
+
+```{r, echo = F}
+rmarkdown::render("homework7.Rmd")
+```
+
+```{r child = 'homework8.Rmd'}
+```
+
+```{r, echo = F}
+rmarkdown::render("homework8.Rmd")
+```
+
+```{r child = 'homework9.Rmd'}
+```
+
+```{r, echo = F}
+rmarkdown::render("homework9.Rmd")
+```
+
+```{r child = 'homework10.Rmd'}
+```
+
+```{r, echo = F}
+rmarkdown::render("homework10.Rmd")
+```

@@ -1,6 +1,8 @@
 # History files
 .Rhistory
 .Rapp.history
+.rstudio/
+.cache/
 
 # Example code in package build process
 *-Ex.R
@@ -12,9 +14,12 @@
 vignettes/*.html
 vignettes/*.pdf
 
-# large data files
+# big data
 */data/
+refs/
 ncbi/
+projects/ebola/data/
+projects/plasmo/data/
 
 # stupid mac files
 .DS_Store

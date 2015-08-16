@@ -6,7 +6,10 @@ set -euo pipefail
 if [[ $# -ne 1 ]]; then
   echo -e "\nusage: $(basename $0) <cmd>\n"
 	echo -e "Starts and stops applied bioinformatics course containers\n"
-	echo -e "-r will start the containers and -s will stop them"
+	echo -e "-r         start rstudio container"
+	echo -e "-g         start galaxy container"
+	echo -e "-c         start ubuntu container"
+	echo -e "-s         stop and remove all containers"
 	exit
 fi
 
@@ -21,12 +24,16 @@ if [[ "${cmd}" == "-r" ]]; then
 		-v $HOME/applied-bioinformatics:/home/rstudio/applied-bioinformatics \
 		thephilross/hadleybioverse
 
+elif [[ "${cmd}" == "-g" ]]; then
+
 	docker run -d \
 		-p 8080:80 -p 8021:21 -p 8800:8800 -p 9001:9001 \
 		--name="appbio-galaxy" \
 		-m 1g \
 		-v $HOME/applied-bioinformatics/:/applied-bioinformatics/ \
 		bgruening/galaxy-stable
+
+elif [[ "${cmd}" == "-c" ]]; then
 
 	docker run -i -t \
 	--name="appbio-ubuntu" \
@@ -38,8 +45,9 @@ if [[ "${cmd}" == "-r" ]]; then
 elif [[ "${cmd}" == "-s" ]]; then
 	docker stop appbio-galaxy appbio-rstudio appbio-ubuntu
 	docker rm appbio-galaxy appbio-rstudio appbio-ubuntu
+
 else
-	echo -e "Not a valid flag. use either -r or -s.\n"
+	echo -e "Not a valid flag."
 	exit
 fi
 

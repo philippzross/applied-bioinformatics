@@ -1,0 +1,123 @@
+---
+title: "Homework 7"
+author: Philipp Ross
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    toc: true
+    highlight: pygments
+---
+
+```{r, include=F, echo=F}
+library(readr)
+```
+
+# Comparative Ebola Genomics
+
+This report connects the homework for units 7, 8, 9, and 10. I'll be looking to recreate a small piece of the analysis done in Gire et al. 2014 where I look at ebola isolates sampled at different time points during 2014 to see if I can differentiate them by their variant calls. I included two biological replicates per timepoint that were collected on the same day. It should be noted that while the June and August samples were sequenced on April of 2015 the May samples were sequenced August of 2014. Normally this could lead to potential batch effects but since we're looking at whole genome sequencing samples that may not be the case. The ebola genome is made of RNA, not DNA, so my assumption may be wrong.
+
+Collection Dates and Accessions:
+
+* May 28th    - `SRR1553468` & `SRR1553464`
+* June 28th   - `SRR1972602` & `SRR1972603`
+* August 30th - `SRR1972861` & `SRR1972852`
+
+That information can be found [here](http://www.ncbi.nlm.nih.gov/Traces/study/?acc=SRP045416).
+
+The reference genome I'll be comparing these samples to is the assembly in Figure 4 of Gire et al. 2014, the Kissidougou Guinean sequence (accesion KJ660346).
+
+Here I'll show the results for preprocessing the samples and aligning them to the reference using bwa mem.
+
+## Preprocessing
+
+### Quality Control
+
+An initial look at my sequences and I could see I was working with one relatively good data set while there others looked so so. The data collected in May looks pretty good as you can see from the plot below:
+
+**May 28th 2014 Collection**
+![](data-bwa/may/reads_1_1_fastqc/Images/per_base_quality.png)
+
+However if we look at the data collected in August it doesn't look good at all.
+
+**August 30th 2014 Collection**
+![](data-bwa/jun/reads_2_1_fastqc/Images/per_base_quality.png)
+
+So I decided to trim the data sets as in Gire et al. 2014 by using trimmomatic.
+
+#### May
+
+```{r, comment=""}
+trim_log <- read_file("data-bwa/may/trim_1.log")
+cat(trim_log)
+```
+
+#### June
+
+```{r, comment=""}
+trim_log <- read_file("data-bwa/jun/trim_1.log")
+cat(trim_log)
+```
+
+#### August
+
+```{r, comment=""}
+trim_log <- read_file("data-bwa/aug/trim_1.log")
+cat(trim_log)
+```
+
+Based on the number of reads left over I decided to move forward. The ebola genome is small and I expected the samples to contain contamination since they were field isolates drawn from human patients. It's likely that a large portion of the reads map to the human genome.
+
+## Alignment Results
+
+I decided to use BWA MEM to align my reads to my reference for each sample and I'll show the basic alignment stats below. The command was:
+
+```{r, comment="", engine="bash", eval=F}
+bwa mem -t 4 $REF $month/trimmed_1_$rep.fastq.gz $month/trimmed_2_$rep.fastq.gz | \
+samtools view -b - | \
+samtools sort -o - tmp > $month/aln_$rep.bam
+```
+
+### Alignment Statistics
+
+Here are the alignment statistics:
+
+#### May
+
+```{r, comment=""}
+aln_stats <- read_file("data-bwa/may/aln_1.stats")
+cat(aln_stats)
+```
+
+#### July
+
+```{r, comment=""}
+aln_stats <- read_file("data-bwa/jun/aln_1.stats")
+cat(aln_stats)
+```
+
+#### August
+
+```{r, comment=""}
+aln_stats <- read_file("data-bwa/aug/aln_1.stats")
+cat(aln_stats)
+```
+
+Interestingly I see some very variable results. For the May datasets I get a very high percentage of reads mapping whereas for the June and August datasets I get a much lower number. In fact for June I only get a total of 22 reads mapping if you sum up both replicates! Luckily for the August datasets, if we average the replicates together we get over 250k reads map which is far more than enough.
+
+But that begs the question as to why the wide discrepency in mapping percentages? My initial hypothesis was that the samples were mostly made up of human genomic DNA contaminants.
+
+### Contamination
+
+I already knew where most of the reads from the May dataset came from. However, I was curious as to where the reads within the June and August datasets originated from if they didn't come from the ebola virus genome. I could attempt to map them back to the human genome but even just contructing an index of the human genome requires several hours and over 3gb of memory which isn't something I want to put my laptop through at the moment. So instead I sampled 0.1% of reads from each trimmed file and BLASTed them against the NCBI nucleotide database to see what I would find.
+
+Most of my hits scattered across several baterial species. Some common hits included Haemophilus ducreyi, a bacterium that causes the sexually transmitted disease chancroid, which is very prevelant in developing countries and bacteria from a genus of nitrogen fixing microbes known as Bradyrhizobium.
+
+I was also to find hits for HIV and Homo sapiens.
+
+## Conclusion
+
+The mapping results for my samples was highly variable and I was really unsure why until I reviewed the the contaminants and the forum [here](https://www.biostars.org/p/146816/) where we see that more than half of the samples have a mapping percentage under 1%! The results listed in the discussion below match with things I saw in BLAST so I'm more confident now in what it's telling me.
+
+It's weird though how these samples were still deposited into the SRA under this study. Clearly some of these samples contain no ebola DNA fragments so why not simply report the number of samples that did contain ebola DNA based on some threshold and upload those? Clearly not all of these were included in the assembly and variant analyses that followed.
+
+I'm not saying we should throw away the data entirely but I'm not sure I would include them in repository of this project on the SRA. It would be a good way of evaluating which samples that were diagnosed as ebola positive match with the sequencing results. There are a mountain of errors that could've occured before these samples were actually sequenced that could explain why some samples contain no DNA at all, even though they were collected from patients that were ebola positive. Whether that's an error in diagnosis, sample prep, or sample degredation prior to sequencing is unclear.
